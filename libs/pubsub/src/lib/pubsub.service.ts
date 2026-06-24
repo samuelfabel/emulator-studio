@@ -178,11 +178,7 @@ export class PubSubService {
     };
   }
 
-  async pullMessages(
-    subscriptionName: string,
-    maxMessages = 5,
-    ack = true
-  ): Promise<PullResult> {
+  async pullMessages(subscriptionName: string, maxMessages = 5, ack = true): Promise<PullResult> {
     this.ensureProjectSynced();
     const subscription = this.pubsub.subscription(subscriptionName);
     const [exists] = await subscription.exists();
@@ -191,10 +187,7 @@ export class PubSubService {
     }
 
     const subscriberClient = await this.getSubscriberClient();
-    const subscriptionPath = subscriberClient.subscriptionPath(
-      this.projectId,
-      subscriptionName
-    );
+    const subscriptionPath = subscriberClient.subscriptionPath(this.projectId, subscriptionName);
 
     const [response] = await subscriberClient.pull({
       subscription: subscriptionPath,

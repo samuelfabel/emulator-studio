@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { EmulatorRuntimeStatus, PubSubEmulatorConfig } from '@emulator-studio/shared';
 import { api } from '../lib/api';
 import { PlayIcon, RefreshIcon, SettingsIcon, StopIcon } from './action-icons';

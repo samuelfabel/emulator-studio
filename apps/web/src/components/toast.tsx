@@ -22,11 +22,7 @@ export function Toast({
   if (!message) return null;
 
   return (
-    <div
-      className={`toast toast-${alert!.type}`}
-      role="status"
-      aria-live="polite"
-    >
+    <div className={`toast toast-${alert!.type}`} role="status" aria-live="polite">
       <p className="flex-1 whitespace-pre-line text-sm leading-relaxed">{message}</p>
       <button type="button" className="toast-close" onClick={onClose} aria-label="Close">
         ×

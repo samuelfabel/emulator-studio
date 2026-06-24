@@ -1,13 +1,7 @@
 import { useEffect } from 'react';
 import type { PullResult } from '@emulator-studio/shared';
 
-export function PullResultModal({
-  result,
-  onClose,
-}: {
-  result: PullResult;
-  onClose: () => void;
-}) {
+export function PullResultModal({ result, onClose }: { result: PullResult; onClose: () => void }) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -81,7 +75,10 @@ export function PullResultModal({
                   <p className="mb-2 text-xs font-medium" style={{ color: 'var(--muted)' }}>
                     Attributes
                   </p>
-                  <div className="space-y-1 rounded-lg border p-3" style={{ borderColor: 'var(--border)' }}>
+                  <div
+                    className="space-y-1 rounded-lg border p-3"
+                    style={{ borderColor: 'var(--border)' }}
+                  >
                     {Object.entries(message.attributes).map(([key, value]) => (
                       <div key={key} className="grid gap-1 text-xs sm:grid-cols-[8rem_1fr]">
                         <span className="font-mono font-semibold">{key}</span>

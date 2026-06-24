@@ -69,36 +69,36 @@ $env:GOOGLE_CLOUD_PROJECT = "local-dev"
 npm run dev
 ```
 
-| Service    | URL |
-|-----------|-----|
-| Dashboard | http://localhost:3000 |
-| API       | http://localhost:3001 |
+| Service   | URL                        |
+| --------- | -------------------------- |
+| Dashboard | http://localhost:3000      |
+| API       | http://localhost:3001      |
 | Swagger   | http://localhost:3001/docs |
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start API and web in parallel |
-| `npm run dev:api` | API only |
-| `npm run dev:web` | Web only |
-| `npm test` | Run all Vitest suites |
-| `npm run lint` | ESLint on all projects |
-| `npm run build` | Build all apps |
-| `npm run format` | Prettier write |
+| Command           | Description                   |
+| ----------------- | ----------------------------- |
+| `npm run dev`     | Start API and web in parallel |
+| `npm run dev:api` | API only                      |
+| `npm run dev:web` | Web only                      |
+| `npm test`        | Run all Vitest suites         |
+| `npm run lint`    | ESLint on all projects        |
+| `npm run build`   | Build all apps                |
+| `npm run format`  | Prettier write                |
 
 ## API overview
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/health` | Health check |
-| GET | `/api/pubsub/status` | Connection status + resource lists |
-| POST | `/api/pubsub/topics` | Create topic |
-| DELETE | `/api/pubsub/topics/:name` | Delete topic |
-| POST | `/api/pubsub/subscriptions` | Create subscription |
-| DELETE | `/api/pubsub/subscriptions/:name` | Delete subscription |
-| POST | `/api/pubsub/publish` | Publish message |
-| POST | `/api/pubsub/subscriptions/:name/pull` | Pull messages (test consume) |
+| Method | Path                                   | Description                        |
+| ------ | -------------------------------------- | ---------------------------------- |
+| GET    | `/health`                              | Health check                       |
+| GET    | `/api/pubsub/status`                   | Connection status + resource lists |
+| POST   | `/api/pubsub/topics`                   | Create topic                       |
+| DELETE | `/api/pubsub/topics/:name`             | Delete topic                       |
+| POST   | `/api/pubsub/subscriptions`            | Create subscription                |
+| DELETE | `/api/pubsub/subscriptions/:name`      | Delete subscription                |
+| POST   | `/api/pubsub/publish`                  | Publish message                    |
+| POST   | `/api/pubsub/subscriptions/:name/pull` | Pull messages (test consume)       |
 
 Full OpenAPI spec: http://localhost:3001/docs
 

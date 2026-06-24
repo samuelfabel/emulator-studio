@@ -21,7 +21,10 @@ export class EmulatorsService implements OnModuleDestroy {
   private readonly dataDir = join(process.cwd(), '.emulator-studio');
   private readonly registryPath = join(this.dataDir, 'installed.json');
   private readonly processes = new Map<string, ChildProcess>();
-  private readonly runtimeMeta = new Map<string, Omit<EmulatorRuntimeStatus, 'id' | 'running' | 'managed'>>();
+  private readonly runtimeMeta = new Map<
+    string,
+    Omit<EmulatorRuntimeStatus, 'id' | 'running' | 'managed'>
+  >();
 
   onModuleDestroy() {
     for (const id of [...this.processes.keys()]) {
@@ -60,10 +63,7 @@ export class EmulatorsService implements OnModuleDestroy {
     const record: InstalledEmulator = {
       id,
       installedAt: new Date().toISOString(),
-      config:
-        id === 'pubsub'
-          ? this.resolvePubSubConfig(config)
-          : (config ?? {}),
+      config: id === 'pubsub' ? this.resolvePubSubConfig(config) : (config ?? {}),
     };
 
     installed.push(record);
@@ -179,7 +179,14 @@ export class EmulatorsService implements OnModuleDestroy {
 
     const child = spawn(
       'gcloud',
-      ['beta', 'emulators', 'pubsub', 'start', `--project=${config.projectId}`, `--host-port=${config.hostPort}`],
+      [
+        'beta',
+        'emulators',
+        'pubsub',
+        'start',
+        `--project=${config.projectId}`,
+        `--host-port=${config.hostPort}`,
+      ],
       { shell: true, stdio: ['ignore', 'pipe', 'pipe'] }
     );
 
@@ -252,13 +259,9 @@ export class EmulatorsService implements OnModuleDestroy {
   private resolvePubSubConfig(config?: Partial<PubSubEmulatorConfig>): PubSubEmulatorConfig {
     return {
       projectId:
-        config?.projectId ??
-        process.env.GOOGLE_CLOUD_PROJECT ??
-        DEFAULT_PUBSUB_CONFIG.projectId,
+        config?.projectId ?? process.env.GOOGLE_CLOUD_PROJECT ?? DEFAULT_PUBSUB_CONFIG.projectId,
       hostPort:
-        config?.hostPort ??
-        process.env.PUBSUB_EMULATOR_HOST ??
-        DEFAULT_PUBSUB_CONFIG.hostPort,
+        config?.hostPort ?? process.env.PUBSUB_EMULATOR_HOST ?? DEFAULT_PUBSUB_CONFIG.hostPort,
     };
   }
 
@@ -530,9 +533,7 @@ export class EmulatorsService implements OnModuleDestroy {
   }
 
   private isAccessDenied(message: string): boolean {
-    return /access is denied|acesso negado|error 5|\(5\)|raz[aã]o:\s*acesso negado/i.test(
-      message
-    );
+    return /access is denied|acesso negado|error 5|\(5\)|raz[aã]o:\s*acesso negado/i.test(message);
   }
 
   private isUacCanceled(message: string): boolean {
@@ -562,7 +563,11 @@ export class EmulatorsService implements OnModuleDestroy {
 
   private execErrorText(error: unknown): string {
     if (error && typeof error === 'object') {
-      const execError = error as { stderr?: Buffer | string; stdout?: Buffer | string; message?: string };
+      const execError = error as {
+        stderr?: Buffer | string;
+        stdout?: Buffer | string;
+        message?: string;
+      };
       const stderr = execError.stderr ? String(execError.stderr) : '';
       const stdout = execError.stdout ? String(execError.stdout) : '';
       return `${stderr} ${stdout} ${execError.message ?? ''}`.trim();
@@ -582,7 +587,9 @@ export class EmulatorsService implements OnModuleDestroy {
   private async assertGcloudAvailable(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
       const check = spawn('gcloud', ['--version'], { shell: true, stdio: 'ignore' });
-      check.on('error', () => reject(new Error('gcloud CLI not found. Required to start the Pub/Sub emulator.')));
+      check.on('error', () =>
+        reject(new Error('gcloud CLI not found. Required to start the Pub/Sub emulator.'))
+      );
       check.on('exit', (code) => {
         if (code === 0) resolve();
         else reject(new Error('gcloud CLI is not available.'));

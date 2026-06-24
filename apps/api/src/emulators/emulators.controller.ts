@@ -1,6 +1,10 @@
 import { Body, Controller, Delete, Get, Inject, Param, Post, Put } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import type { EmulatorListItem, EmulatorRuntimeStatus, PubSubEmulatorConfig } from '@emulator-studio/shared';
+import type {
+  EmulatorListItem,
+  EmulatorRuntimeStatus,
+  PubSubEmulatorConfig,
+} from '@emulator-studio/shared';
 import { UpdatePubSubConfigDto } from './dto/update-pubsub-config.dto';
 import { InstallEmulatorDto } from './dto/install-emulator.dto';
 import { EmulatorsService } from './emulators.service';

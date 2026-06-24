@@ -31,12 +31,7 @@ export function AppShell({
           <div className="grid grid-cols-[2.25rem_minmax(0,1fr)_2.25rem] items-center gap-x-3">
             <div className={`${HEADER_LEADING_SLOT} flex items-center justify-center`}>
               {showBack ? (
-                <Link
-                  to={backHref!}
-                  className="btn-icon-round"
-                  aria-label="Back"
-                  title="Back"
-                >
+                <Link to={backHref!} className="btn-icon-round" aria-label="Back" title="Back">
                   <BackIcon />
                 </Link>
               ) : (
@@ -53,7 +48,9 @@ export function AppShell({
               </p>
             </div>
 
-            <div className={`${HEADER_LEADING_SLOT} flex items-center justify-center justify-self-end`}>
+            <div
+              className={`${HEADER_LEADING_SLOT} flex items-center justify-center justify-self-end`}
+            >
               <ThemeToggle />
             </div>
           </div>

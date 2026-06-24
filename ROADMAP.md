@@ -10,25 +10,25 @@ Wishlist of emulators and local tooling to support in future dashboards across *
 
 Official emulators via `gcloud beta emulators` (same model as Pub/Sub).
 
-| Service | Local option | Notes |
-|---------|--------------|-------|
-| **Cloud Pub/Sub** | `gcloud beta emulators pubsub` | ✅ Implemented |
-| **Cloud Firestore** | `gcloud beta emulators firestore` | Document database |
-| **Cloud Storage** | `gcloud beta emulators storage` | Object storage |
-| **Cloud Spanner** | `gcloud beta emulators spanner` | Relational database |
-| **Cloud Bigtable** | `gcloud beta emulators bigtable` | Wide-column database |
+| Service             | Local option                      | Notes                    |
+| ------------------- | --------------------------------- | ------------------------ |
+| **Cloud Pub/Sub**   | `gcloud beta emulators pubsub`    | ✅ Implemented           |
+| **Cloud Firestore** | `gcloud beta emulators firestore` | Document database        |
+| **Cloud Storage**   | `gcloud beta emulators storage`   | Object storage           |
+| **Cloud Spanner**   | `gcloud beta emulators spanner`   | Relational database      |
+| **Cloud Bigtable**  | `gcloud beta emulators bigtable`  | Wide-column database     |
 | **Cloud Datastore** | `gcloud beta emulators datastore` | Legacy document database |
 
 ---
 
 ## Azure
 
-| Service | Local option | Notes |
-|---------|--------------|-------|
-| **Blob / Queue / Table Storage** | [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite) | Official, open source |
-| **Cosmos DB** | [Cosmos DB Emulator](https://learn.microsoft.com/azure/cosmos-db/local-emulator) | Official (Windows and Linux) |
-| **Service Bus** | Docker / community images | No full official emulator |
-| **Event Hubs** | Mocks or dev namespaces | Limited local options |
+| Service                          | Local option                                                                     | Notes                        |
+| -------------------------------- | -------------------------------------------------------------------------------- | ---------------------------- |
+| **Blob / Queue / Table Storage** | [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite)  | Official, open source        |
+| **Cosmos DB**                    | [Cosmos DB Emulator](https://learn.microsoft.com/azure/cosmos-db/local-emulator) | Official (Windows and Linux) |
+| **Service Bus**                  | Docker / community images                                                        | No full official emulator    |
+| **Event Hubs**                   | Mocks or dev namespaces                                                          | Limited local options        |
 
 ---
 
@@ -36,11 +36,11 @@ Official emulators via `gcloud beta emulators` (same model as Pub/Sub).
 
 AWS has few single-service official emulators; most local workflows use third-party stacks.
 
-| Service | Local option | Notes |
-|---------|--------------|-------|
-| **SQS, SNS, S3, Lambda, …** | [LocalStack](https://localstack.cloud/) | Broad AWS surface (community / Pro) |
-| **DynamoDB** | [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) | Official JAR |
-| **Lambda + API Gateway** | [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-using-start-lambda.html) (`sam local`) | Official local invoke |
+| Service                     | Local option                                                                                                                                       | Notes                               |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| **SQS, SNS, S3, Lambda, …** | [LocalStack](https://localstack.cloud/)                                                                                                            | Broad AWS surface (community / Pro) |
+| **DynamoDB**                | [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html)                                              | Official JAR                        |
+| **Lambda + API Gateway**    | [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-using-start-lambda.html) (`sam local`) | Official local invoke               |
 
 ---
 
