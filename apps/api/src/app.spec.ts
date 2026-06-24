@@ -26,6 +26,8 @@ function createMockService(): PubSubService {
     pullMessages: vi.fn(),
     close: vi.fn(),
     getProjectId: vi.fn().mockReturnValue('local-dev'),
+    syncProject: vi.fn(),
+    syncFromEnvironment: vi.fn(),
   } as unknown as PubSubService;
 }
 

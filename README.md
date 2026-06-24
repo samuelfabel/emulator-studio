@@ -27,7 +27,7 @@ The web app **never** talks to cloud providers directly — all emulator operati
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 24+
 - [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) — required only for the Pub/Sub emulator today
 - npm
 

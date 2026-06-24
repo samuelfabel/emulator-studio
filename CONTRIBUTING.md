@@ -9,7 +9,7 @@ Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before participating.
 ## Development setup
 
 1. Fork and clone the repository
-2. Install Node.js 20+
+2. Install Node.js 24+
 3. Run `npm install`
 4. Copy `.env.example` to `.env`
 5. Start the Pub/Sub emulator (see README)
