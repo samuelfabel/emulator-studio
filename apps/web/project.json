@@ -1,0 +1,17 @@
+{
+  "name": "web",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/web/src",
+  "projectType": "application",
+  "tags": ["scope:web"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "passWithNoTests": true,
+        "reportsDirectory": "{workspaceRoot}/coverage/apps/web",
+        "config": "{projectRoot}/vitest.config.ts"
+      }
+    }
+  }
+}

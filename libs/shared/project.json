@@ -1,0 +1,16 @@
+{
+  "name": "shared",
+  "sourceRoot": "libs/shared/src",
+  "projectType": "library",
+  "tags": ["scope:shared"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "passWithNoTests": true,
+        "reportsDirectory": "{workspaceRoot}/coverage/libs/shared",
+        "config": "{projectRoot}/vitest.config.ts"
+      }
+    }
+  }
+}

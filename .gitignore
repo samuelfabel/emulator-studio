@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+.nx
+.next
+.env
+.env.local
+.emulator-studio
+*.log
+.DS_Store
+set_vars.cmd

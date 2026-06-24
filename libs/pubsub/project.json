@@ -1,0 +1,16 @@
+{
+  "name": "pubsub",
+  "sourceRoot": "libs/pubsub/src",
+  "projectType": "library",
+  "tags": ["scope:pubsub"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "passWithNoTests": true,
+        "reportsDirectory": "{workspaceRoot}/coverage/libs/pubsub",
+        "config": "{projectRoot}/vitest.config.ts"
+      }
+    }
+  }
+}

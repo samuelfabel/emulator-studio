@@ -1,0 +1,45 @@
+{
+  "name": "api",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/api/src",
+  "projectType": "application",
+  "tags": ["scope:api"],
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": {
+        "command": "tsx watch --tsconfig apps/api/tsconfig.app.json apps/api/src/main.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/api",
+        "main": "apps/api/src/main.ts",
+        "tsConfig": "apps/api/tsconfig.app.json",
+        "platform": "node",
+        "bundle": true,
+        "format": ["cjs"],
+        "thirdParty": true,
+        "external": [
+          "@nestjs/microservices",
+          "@nestjs/microservices/microservices-module",
+          "@nestjs/websockets",
+          "@nestjs/websockets/socket-module",
+          "class-transformer/storage"
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "passWithNoTests": true,
+        "reportsDirectory": "{workspaceRoot}/coverage/apps/api",
+        "config": "{projectRoot}/vitest.config.ts"
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "extends": ["../../tsconfig.base.json"],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "types": ["vitest/globals"]
+  },
+  "include": ["src/**/*.spec.ts", "src/**/*.test.ts", "vitest.config.ts"]
+}

@@ -1,0 +1,212 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --text: #0f1419;
+  --muted: #5b6b82;
+  --border: #d8dee9;
+  --primary: #2563eb;
+}
+
+.dark {
+  --bg: #0f1419;
+  --surface: #1a2332;
+  --text: #e7ecf3;
+  --muted: #8b9cb3;
+  --border: #2d3a4f;
+  --primary: #3b82f6;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.card {
+  @apply rounded-xl border p-5;
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition;
+}
+
+.btn-primary {
+  @apply btn text-white;
+  background: var(--primary);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+.btn-primary:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.btn-ghost {
+  @apply btn border;
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.btn-icon {
+  @apply inline-flex h-8 w-8 items-center justify-center rounded-md text-sm transition;
+  color: var(--muted);
+  background: transparent;
+}
+
+.btn-icon-round {
+  @apply btn-icon h-9 w-9 rounded-full border;
+  border-color: var(--border);
+}
+
+.btn-icon:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--bg);
+}
+
+.btn-icon:disabled {
+  @apply cursor-not-allowed opacity-40;
+}
+
+.btn-icon-danger:hover:not(:disabled) {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-icon-accent:hover:not(:disabled) {
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.input {
+  @apply w-full rounded-lg border px-3 py-2 text-sm outline-none;
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.input:focus {
+  border-color: var(--primary);
+}
+
+select.input {
+  @apply cursor-pointer appearance-none pr-10;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b6b82' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+}
+
+.dark select.input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b9cb3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+.badge-ok {
+  @apply rounded-full px-3 py-1 text-xs font-semibold;
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.badge-error {
+  @apply rounded-full px-3 py-1 text-xs font-semibold;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.btn-danger {
+  @apply btn text-white;
+  background: #dc2626;
+}
+
+.btn-danger:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.btn-danger:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.toast {
+  @apply fixed right-4 top-4 z-50 flex max-w-md items-start gap-3 rounded-xl border p-4 shadow-lg;
+  background: var(--surface);
+  border-color: var(--border);
+  animation: toast-in 0.2s ease-out;
+}
+
+.toast-success {
+  border-left: 3px solid #22c55e;
+}
+
+.toast-error {
+  border-left: 3px solid #ef4444;
+}
+
+.toast-close {
+  @apply shrink-0 rounded-md px-1.5 py-0.5 text-lg leading-none transition;
+  color: var(--muted);
+}
+
+.toast-close:hover {
+  color: var(--text);
+  background: var(--bg);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.modal-overlay {
+  @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+  background: rgba(15, 20, 25, 0.55);
+}
+
+.modal {
+  @apply w-full max-w-md rounded-xl border p-5 shadow-xl;
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.modal-wide {
+  @apply max-w-2xl;
+}
+
+.media-controls {
+  @apply flex items-center gap-1 rounded-full border px-2 py-1;
+  border-color: var(--border);
+  background: var(--bg);
+}
+
+.btn-media {
+  @apply inline-flex h-9 w-9 items-center justify-center rounded-full transition;
+  color: var(--muted);
+}
+
+.btn-media:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.btn-media:disabled {
+  @apply cursor-not-allowed opacity-40;
+}
+
+.btn-media-play:hover:not(:disabled) {
+  color: var(--primary);
+}
+
+.btn-media-stop:hover:not(:disabled) {
+  color: #ef4444;
+}
