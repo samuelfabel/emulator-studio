@@ -402,29 +402,33 @@ export class EmulatorsService implements OnModuleDestroy {
         return { ok: true };
       }
 
-      console.error(`[emulators] taskkill failed for PID ${pid}: ${normal.error}`);
+      if (normal.exitCode != null) {
+        console.error(`[emulators] taskkill failed for PID ${pid} (exit code ${normal.exitCode})`);
+      }
 
-      if (this.isAccessDenied(normal.error ?? '')) {
-        console.log(
-          `[emulators] Requesting UAC elevation to stop PID ${pid} (process may be running as Administrator)`
-        );
-        const elevated = this.runTaskkillWindows(pid, true);
-        if (elevated.ok) {
-          console.log(`[emulators] Stopped PID ${pid} via UAC elevation`);
-          return { ok: true };
-        }
+      if (!this.isWindowsProcessRunning(pid)) {
+        console.log(`[emulators] Stopped PID ${pid}`);
+        return { ok: true };
+      }
 
-        return {
-          ok: false,
-          error:
-            elevated.error ??
-            `Could not stop PID ${pid}. Approve the UAC prompt or run the API as Administrator.`,
-        };
+      console.log(`[emulators] Retrying with elevation for PID ${pid}`);
+      const elevated = this.runTaskkillWindows(pid, true);
+      if (elevated.ok) {
+        console.log(`[emulators] Stopped PID ${pid} via UAC elevation`);
+        return { ok: true };
+      }
+
+      if (!this.isWindowsProcessRunning(pid)) {
+        console.log(`[emulators] Stopped PID ${pid} via UAC elevation`);
+        return { ok: true };
       }
 
       return {
         ok: false,
-        error: normal.error ?? `Could not stop PID ${pid}.`,
+        error:
+          elevated.error ??
+          this.killErrorFromExitCode(pid, elevated.exitCode) ??
+          `Could not stop PID ${pid}. Approve the UAC prompt or run the API as Administrator.`,
       };
     }
 
@@ -472,7 +476,10 @@ export class EmulatorsService implements OnModuleDestroy {
     return { ok: true };
   }
 
-  private runTaskkillWindows(pid: number, elevated: boolean): { ok: boolean; error?: string } {
+  private runTaskkillWindows(
+    pid: number,
+    elevated: boolean
+  ): { ok: boolean; exitCode?: number | null; error?: string } {
     try {
       if (elevated) {
         execSync(
@@ -489,35 +496,48 @@ export class EmulatorsService implements OnModuleDestroy {
 
       return {
         ok: false,
+        exitCode: null,
         error: `PID ${pid} is still running after ${elevated ? 'elevated ' : ''}taskkill.`,
       };
     } catch (error) {
-      const details = this.execErrorText(error);
-      if (elevated && this.isUacCanceled(details)) {
-        return { ok: false, error: `Stopping PID ${pid} was canceled in the UAC prompt.` };
+      const exitCode = this.execExitCode(error);
+
+      if (!this.isWindowsProcessRunning(pid)) {
+        return { ok: true };
       }
-      return { ok: false, error: this.normalizeKillError(pid, details) };
+
+      return {
+        ok: false,
+        exitCode,
+        error: this.killErrorFromExitCode(pid, exitCode),
+      };
     }
   }
 
-  private normalizeKillError(pid: number, raw: string): string {
-    if (this.isAccessDenied(raw)) {
-      return `Access denied when stopping PID ${pid}. The process may be running as Administrator.`;
+  private execExitCode(error: unknown): number | null {
+    if (error && typeof error === 'object' && 'status' in error) {
+      const status = (error as { status?: number | null }).status;
+      return typeof status === 'number' ? status : null;
     }
 
-    if (this.isUacCanceled(raw)) {
-      return `Stopping PID ${pid} was canceled in the UAC prompt.`;
-    }
+    return null;
+  }
 
-    if (/not found|n[aã]o foi encontrado/i.test(raw)) {
-      return `Process ${pid} was not found.`;
+  private killErrorFromExitCode(pid: number, exitCode?: number | null): string {
+    switch (exitCode) {
+      case 0:
+        return `PID ${pid} is still running after taskkill.`;
+      case 5:
+        return `Access denied when stopping PID ${pid}. The process may be running as Administrator.`;
+      case 1223:
+        return `Stopping PID ${pid} was canceled in the UAC prompt.`;
+      case 128:
+        return `Process ${pid} was not found.`;
+      default:
+        return exitCode != null
+          ? `Could not stop PID ${pid} (exit code ${exitCode}).`
+          : `Could not stop PID ${pid}.`;
     }
-
-    if (/could not be terminated|n[aã]o p[oô]de ser finalizado/i.test(raw)) {
-      return `Could not terminate process ${pid}.`;
-    }
-
-    return `Could not stop PID ${pid}.`;
   }
 
   private isWindowsProcessRunning(pid: number): boolean {
@@ -530,16 +550,6 @@ export class EmulatorsService implements OnModuleDestroy {
     } catch {
       return false;
     }
-  }
-
-  private isAccessDenied(message: string): boolean {
-    return /access is denied|acesso negado|error 5|\(5\)|raz[aã]o:\s*acesso negado/i.test(message);
-  }
-
-  private isUacCanceled(message: string): boolean {
-    return /canceled|cancelled|1223|operation was canceled by the user|cancelad[oa].*usu[aá]rio/i.test(
-      message
-    );
   }
 
   private isProcessRunning(pid: number): boolean {
@@ -558,22 +568,11 @@ export class EmulatorsService implements OnModuleDestroy {
       return `Permission denied when stopping PID ${pid}. The process may belong to another user — use sudo or stop it manually.`;
     }
 
-    return error instanceof Error ? error.message : `Could not stop PID ${pid}.`;
-  }
-
-  private execErrorText(error: unknown): string {
-    if (error && typeof error === 'object') {
-      const execError = error as {
-        stderr?: Buffer | string;
-        stdout?: Buffer | string;
-        message?: string;
-      };
-      const stderr = execError.stderr ? String(execError.stderr) : '';
-      const stdout = execError.stdout ? String(execError.stdout) : '';
-      return `${stderr} ${stdout} ${execError.message ?? ''}`.trim();
+    if (code === 'ESRCH') {
+      return `Process ${pid} was not found.`;
     }
 
-    return error instanceof Error ? error.message : String(error);
+    return code ? `Could not stop PID ${pid} (${code}).` : `Could not stop PID ${pid}.`;
   }
 
   private async waitForPortClosed(hostPort: string, timeoutMs = 8000): Promise<void> {
