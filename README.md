@@ -50,9 +50,8 @@ cp .env.example .env
 
 ### 3. Start emulators
 
-**Option A — from the Studio UI (local dev on the host only)**  
-Install and start Pub/Sub and/or Cloud Storage from http://localhost:3000/emulators.  
-When Studio runs from a **Docker Hub image**, use Option B / compose instead ([details](#running-from-docker-hub)).
+**Option A — from the Studio UI (recommended)**  
+Install and start Pub/Sub and/or Cloud Storage from http://localhost:3000/emulators.
 
 **Option B — manually**
 
@@ -92,47 +91,6 @@ npm run dev
 | Dashboard | http://localhost:3000      |
 | API       | http://localhost:3001      |
 | Swagger   | http://localhost:3001/docs |
-
-## Running from Docker Hub
-
-Images on Docker Hub run **Emulator Studio only** (API + web). They do **not** ship `fake-gcs-server`, the Pub/Sub emulator, or the Docker CLI.
-
-### Cloud Storage — read this before using Start in the UI
-
-| Setup | UI Start/Stop for Storage | What happens |
-| ----- | ------------------------- | ------------ |
-| **Local dev** (`npm run dev` on the host) | Works | Studio calls the host Docker daemon and manages container `emulator-studio-gcs`. |
-| **Studio in Docker** (default, no extra mounts) | **Does not work** | `docker` is unavailable inside the image → error *Docker is not available*. No container is created. |
-| **Studio in Docker + `/var/run/docker.sock` mounted** | Works, but discouraged | Studio talks to the **host** Docker daemon (Docker-out-of-Docker). It starts a **sibling** container on the host, not nested Docker. Networking breaks easily (`localhost:4443` inside Studio ≠ fake-gcs on the host). |
-
-**Recommended for Docker Hub:** run `fake-gcs-server` as its own service and connect via env var. The Storage dashboard shows **Running (external)** and skips container management.
-
-```yaml
-# docker-compose.example.yml (copy and adapt)
-services:
-  studio:
-    image: <your-docker-hub-image>
-    environment:
-      STORAGE_EMULATOR_HOST: http://fake-gcs:4443
-    depends_on: [fake-gcs]
-
-  fake-gcs:
-    image: fsouza/fake-gcs-server:1.52.2
-    command: ['-scheme', 'http', '-port', '4443', '-backend', 'memory']
-    ports: ['4443:4443']
-```
-
-Full example: [docker-compose.example.yml](docker-compose.example.yml).
-
-### Pub/Sub in Docker
-
-The Pub/Sub emulator requires `gcloud` on the machine that runs it. The Studio Docker image does not include `gcloud`. Run the emulator on the host or in another container and set `PUBSUB_EMULATOR_HOST` (e.g. `host.docker.internal:8085` on Docker Desktop).
-
-### Summary
-
-- **Docker Hub image ≠ full emulator stack.** Compose emulators next to Studio or run them on the host.
-- **Do not mount `docker.sock`** unless you understand sibling containers and host/port mapping.
-- **Use service hostnames** (`http://fake-gcs:4443`), not `localhost`, when Studio runs in a container.
 
 ## Scripts
 
