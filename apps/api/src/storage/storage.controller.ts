@@ -50,10 +50,7 @@ export class StorageController {
   @Delete('buckets/:bucket')
   @HttpCode(204)
   @ApiNoContentResponse({ description: 'Bucket deleted' })
-  async deleteBucket(
-    @Param('bucket') bucket: string,
-    @Query('force') force?: string
-  ) {
+  async deleteBucket(@Param('bucket') bucket: string, @Query('force') force?: string) {
     await this.storageService.deleteBucket(bucket.trim(), force === 'true' || force === '1');
   }
 
@@ -115,14 +112,11 @@ export class StorageController {
 
     const encoding = body.encoding ?? 'utf8';
     const data =
-      encoding === 'base64' ? Buffer.from(body.content, 'base64') : Buffer.from(body.content, 'utf8');
+      encoding === 'base64'
+        ? Buffer.from(body.content, 'base64')
+        : Buffer.from(body.content, 'utf8');
 
-    return this.storageService.uploadObject(
-      bucket.trim(),
-      objectName,
-      data,
-      body.contentType
-    );
+    return this.storageService.uploadObject(bucket.trim(), objectName, data, body.contentType);
   }
 
   @Post('buckets/:bucket/folders')

@@ -252,12 +252,7 @@ export function PubSubEmulatorPanel() {
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                className="btn-primary"
-                disabled={busy}
-                onClick={saveConfig}
-              >
+              <button type="button" className="btn-primary" disabled={busy} onClick={saveConfig}>
                 Save
               </button>
             </div>

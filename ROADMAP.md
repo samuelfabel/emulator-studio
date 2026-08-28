@@ -8,14 +8,14 @@ Wishlist of emulators and local tooling to support in future dashboards across *
 
 ## Google Cloud
 
-| Service             | Local option                         | Notes                                      |
-| ------------------- | ------------------------------------ | ------------------------------------------ |
-| **Cloud Pub/Sub**   | `gcloud beta emulators pubsub`       | ✅ Implemented                             |
-| **Cloud Storage**   | `fsouza/fake-gcs-server` (Docker)    | ✅ Implemented — no official gcloud storage emulator |
-| **Cloud Firestore** | `gcloud beta emulators firestore`    | Document database                          |
-| **Cloud Spanner**   | `gcloud beta emulators spanner`      | Relational database                        |
-| **Cloud Bigtable**  | `gcloud beta emulators bigtable`     | Wide-column database                       |
-| **Cloud Datastore** | `gcloud beta emulators datastore`    | Legacy document database                   |
+| Service             | Local option                      | Notes                                                |
+| ------------------- | --------------------------------- | ---------------------------------------------------- |
+| **Cloud Pub/Sub**   | `gcloud beta emulators pubsub`    | ✅ Implemented                                       |
+| **Cloud Storage**   | `fsouza/fake-gcs-server` (Docker) | ✅ Implemented — no official gcloud storage emulator |
+| **Cloud Firestore** | `gcloud beta emulators firestore` | Document database                                    |
+| **Cloud Spanner**   | `gcloud beta emulators spanner`   | Relational database                                  |
+| **Cloud Bigtable**  | `gcloud beta emulators bigtable`  | Wide-column database                                 |
+| **Cloud Datastore** | `gcloud beta emulators datastore` | Legacy document database                             |
 
 ---
 

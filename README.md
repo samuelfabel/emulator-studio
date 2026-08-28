@@ -120,17 +120,17 @@ npm run dev
 
 ### Cloud Storage
 
-| Method | Path                                              | Description                          |
-| ------ | ------------------------------------------------- | ------------------------------------ |
-| GET    | `/api/storage/status`                             | Connection status + bucket list      |
-| POST   | `/api/storage/buckets`                            | Create bucket                        |
-| DELETE | `/api/storage/buckets/:bucket`                    | Delete bucket (`?force=true`)        |
-| GET    | `/api/storage/buckets/:bucket/iam`                | IAM policy (if emulator supports it) |
-| GET    | `/api/storage/buckets/:bucket/objects`            | List objects/folders (`?prefix=`)    |
-| POST   | `/api/storage/buckets/:bucket/objects`            | Upload object (JSON body)            |
-| GET    | `/api/storage/buckets/:bucket/objects/download`   | Download object bytes                |
-| DELETE | `/api/storage/buckets/:bucket/objects`            | Delete object (`?name=`)             |
-| POST   | `/api/storage/buckets/:bucket/folders`            | Create folder placeholder            |
+| Method | Path                                            | Description                          |
+| ------ | ----------------------------------------------- | ------------------------------------ |
+| GET    | `/api/storage/status`                           | Connection status + bucket list      |
+| POST   | `/api/storage/buckets`                          | Create bucket                        |
+| DELETE | `/api/storage/buckets/:bucket`                  | Delete bucket (`?force=true`)        |
+| GET    | `/api/storage/buckets/:bucket/iam`              | IAM policy (if emulator supports it) |
+| GET    | `/api/storage/buckets/:bucket/objects`          | List objects/folders (`?prefix=`)    |
+| POST   | `/api/storage/buckets/:bucket/objects`          | Upload object (JSON body)            |
+| GET    | `/api/storage/buckets/:bucket/objects/download` | Download object bytes                |
+| DELETE | `/api/storage/buckets/:bucket/objects`          | Delete object (`?name=`)             |
+| POST   | `/api/storage/buckets/:bucket/folders`          | Create folder placeholder            |
 
 Full OpenAPI spec: http://localhost:3001/docs
 

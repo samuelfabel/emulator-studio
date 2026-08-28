@@ -257,12 +257,7 @@ export function StorageEmulatorPanel() {
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                className="btn-primary"
-                disabled={busy}
-                onClick={saveConfig}
-              >
+              <button type="button" className="btn-primary" disabled={busy} onClick={saveConfig}>
                 Save
               </button>
             </div>
@@ -314,9 +309,7 @@ export function StorageEmulatorControls() {
         className={`btn-media ${busy ? 'animate-spin' : ''}`}
         disabled={!installed || busy || loading}
         onClick={() =>
-          withClearError(() =>
-            run(restart, running ? 'Emulator restarted.' : 'Emulator started.')
-          )
+          withClearError(() => run(restart, running ? 'Emulator restarted.' : 'Emulator started.'))
         }
         aria-label="Restart emulator"
         title="Restart"

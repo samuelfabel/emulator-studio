@@ -251,7 +251,12 @@ export class StorageService {
 
   async createFolder(bucketName: string, folderPath: string): Promise<StorageObjectInfo> {
     const name = folderPath.endsWith('/') ? folderPath : `${folderPath}/`;
-    return this.uploadObject(bucketName, name, Buffer.alloc(0), 'application/x-www-form-urlencoded');
+    return this.uploadObject(
+      bucketName,
+      name,
+      Buffer.alloc(0),
+      'application/x-www-form-urlencoded'
+    );
   }
 
   async deleteObject(bucketName: string, objectName: string): Promise<void> {

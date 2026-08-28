@@ -34,9 +34,9 @@ describe('StorageService', () => {
   });
 
   it('lists buckets when connected', async () => {
-    const getBuckets = vi.fn().mockResolvedValue([
-      [{ name: 'ondt-paysource-load-dev', metadata: { location: 'US' } }],
-    ]);
+    const getBuckets = vi
+      .fn()
+      .mockResolvedValue([[{ name: 'ondt-paysource-load-dev', metadata: { location: 'US' } }]]);
 
     const service = new StorageService({
       projectId: 'local-dev',
@@ -51,11 +51,13 @@ describe('StorageService', () => {
   });
 
   it('lists objects with folder prefixes', async () => {
-    const getFiles = vi.fn().mockResolvedValue([
-      [{ name: 'docs/readme.txt', metadata: { size: '12', contentType: 'text/plain' } }],
-      undefined,
-      { prefixes: ['docs/archive/'] },
-    ]);
+    const getFiles = vi
+      .fn()
+      .mockResolvedValue([
+        [{ name: 'docs/readme.txt', metadata: { size: '12', contentType: 'text/plain' } }],
+        undefined,
+        { prefixes: ['docs/archive/'] },
+      ]);
 
     const service = new StorageService({
       projectId: 'local-dev',
