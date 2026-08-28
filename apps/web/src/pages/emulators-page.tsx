@@ -90,6 +90,11 @@ export function EmulatorsPage() {
                       Open dashboard
                     </Link>
                   )}
+                  {item.id === 'storage' && (
+                    <Link to="/emulators/storage" className="btn-primary">
+                      Open dashboard
+                    </Link>
+                  )}
                   <button
                     type="button"
                     className="btn-danger"

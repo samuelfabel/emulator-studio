@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { EmulatorRuntimeStatus, PubSubEmulatorConfig } from '@emulator-studio/shared';
+import type { EmulatorRuntimeStatus, StorageEmulatorConfig } from '@emulator-studio/shared';
 import { api } from '../lib/api';
 import { useModalKeyboard } from '../lib/modal-keyboard';
 import { PlayIcon, RefreshIcon, SettingsIcon, StopIcon } from './action-icons';
@@ -7,9 +7,9 @@ import { Toast, type ToastAlert } from './toast';
 
 type Alert = ToastAlert;
 
-interface PubSubEmulatorContextValue {
-  config: PubSubEmulatorConfig;
-  setConfig: React.Dispatch<React.SetStateAction<PubSubEmulatorConfig>>;
+interface StorageEmulatorContextValue {
+  config: StorageEmulatorConfig;
+  setConfig: React.Dispatch<React.SetStateAction<StorageEmulatorConfig>>;
   runtime: EmulatorRuntimeStatus | null;
   installed: boolean;
   loading: boolean;
@@ -21,17 +21,22 @@ interface PubSubEmulatorContextValue {
   onActionStart?: () => void;
 }
 
-const PubSubEmulatorContext = createContext<PubSubEmulatorContextValue | null>(null);
+const StorageEmulatorContext = createContext<StorageEmulatorContextValue | null>(null);
 
-function usePubSubEmulatorContext() {
-  const ctx = useContext(PubSubEmulatorContext);
+function useStorageEmulatorContext() {
+  const ctx = useContext(StorageEmulatorContext);
   if (!ctx) {
-    throw new Error('PubSub emulator components must be used within PubSubEmulatorRoot.');
+    throw new Error('Storage emulator components must be used within StorageEmulatorRoot.');
   }
   return ctx;
 }
 
-export function PubSubEmulatorRoot({
+/** Access emulator start/stop/config state from inside StorageEmulatorRoot. */
+export function useStorageEmulator() {
+  return useStorageEmulatorContext();
+}
+
+export function StorageEmulatorRoot({
   children,
   onChanged,
   onActionStart,
@@ -40,9 +45,9 @@ export function PubSubEmulatorRoot({
   onChanged?: () => void;
   onActionStart?: () => void;
 }) {
-  const [config, setConfig] = useState<PubSubEmulatorConfig>({
+  const [config, setConfig] = useState<StorageEmulatorConfig>({
     projectId: 'local-dev',
-    hostPort: 'localhost:8085',
+    hostPort: 'localhost:4443',
   });
   const [runtime, setRuntime] = useState<EmulatorRuntimeStatus | null>(null);
   const [installed, setInstalled] = useState(false);
@@ -53,16 +58,16 @@ export function PubSubEmulatorRoot({
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [list, pubsubConfig, pubsubRuntime] = await Promise.all([
+      const [list, storageConfig, storageRuntime] = await Promise.all([
         api.listEmulators(),
-        api.getPubSubConfig().catch(() => null),
-        api.getPubSubRuntime(),
+        api.getStorageConfig().catch(() => null),
+        api.getStorageRuntime(),
       ]);
 
-      const pubsub = list.find((e) => e.id === 'pubsub');
-      setInstalled(Boolean(pubsub?.installed));
-      if (pubsubConfig) setConfig(pubsubConfig);
-      setRuntime(pubsubRuntime);
+      const storage = list.find((e) => e.id === 'storage');
+      setInstalled(Boolean(storage?.installed));
+      if (storageConfig) setConfig(storageConfig);
+      setRuntime(storageRuntime);
     } catch (err) {
       setAlert({ type: 'error', message: err instanceof Error ? err.message : 'Failed to load' });
     } finally {
@@ -99,7 +104,7 @@ export function PubSubEmulatorRoot({
   }, [refresh, onChanged]);
 
   return (
-    <PubSubEmulatorContext.Provider
+    <StorageEmulatorContext.Provider
       value={{
         config,
         setConfig,
@@ -116,13 +121,13 @@ export function PubSubEmulatorRoot({
     >
       <Toast alert={alert} onClose={() => setAlert(null)} />
       {children}
-    </PubSubEmulatorContext.Provider>
+    </StorageEmulatorContext.Provider>
   );
 }
 
-export function PubSubEmulatorPanel() {
+export function StorageEmulatorPanel() {
   const { config, setConfig, runtime, installed, loading, busy, running, run } =
-    usePubSubEmulatorContext();
+    useStorageEmulatorContext();
   const [modalOpen, setModalOpen] = useState(false);
   const [draft, setDraft] = useState(config);
 
@@ -134,7 +139,7 @@ export function PubSubEmulatorPanel() {
 
   const saveConfig = () =>
     run(async () => {
-      await api.updatePubSubConfig(draft);
+      await api.updateStorageConfig(draft);
       setConfig(draft);
       setModalOpen(false);
     }, 'Configuration saved.');
@@ -148,7 +153,7 @@ export function PubSubEmulatorPanel() {
 
   const statusLabel = running
     ? runtime?.managed
-      ? `Running (PID ${runtime.pid ?? '—'})`
+      ? `Running (container ${runtime.containerId ?? '—'})`
       : `Running externally at ${runtime?.hostPort ?? config.hostPort}`
     : 'Stopped';
 
@@ -159,7 +164,7 @@ export function PubSubEmulatorPanel() {
           <div>
             <h2 className="font-semibold">Local emulator</h2>
             <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              Control the local Pub/Sub emulator process.
+              Control the local Storage emulator (fake-gcs-server via Docker).
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -181,7 +186,7 @@ export function PubSubEmulatorPanel() {
 
         {!installed && (
           <p className="mt-4 text-sm" style={{ color: 'var(--muted)' }}>
-            The Pub/Sub emulator is not installed.{' '}
+            The Storage emulator is not installed.{' '}
             <a href="/emulators" className="underline" style={{ color: 'var(--primary)' }}>
               Install it from the emulators page
             </a>{' '}
@@ -207,14 +212,14 @@ export function PubSubEmulatorPanel() {
             className="modal"
             role="dialog"
             aria-modal="true"
-            aria-labelledby="pubsub-config-title"
+            aria-labelledby="storage-config-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="pubsub-config-title" className="mb-1 text-lg font-semibold">
+            <h2 id="storage-config-title" className="mb-1 text-lg font-semibold">
               Configure emulator
             </h2>
             <p className="mb-4 text-sm" style={{ color: 'var(--muted)' }}>
-              Set the project ID and local emulator host:port.
+              Set the project ID and local emulator host:port. Requires Docker for start.
             </p>
 
             <div className="space-y-4">
@@ -238,7 +243,7 @@ export function PubSubEmulatorPanel() {
                   value={draft.hostPort}
                   onChange={(e) => setDraft((c) => ({ ...c, hostPort: e.target.value }))}
                   disabled={busy}
-                  placeholder="localhost:8085"
+                  placeholder="localhost:4443"
                 />
               </div>
             </div>
@@ -268,9 +273,8 @@ export function PubSubEmulatorPanel() {
   );
 }
 
-export function PubSubEmulatorControls() {
-  const { installed, loading, busy, running, refreshAll, run, onActionStart } =
-    usePubSubEmulatorContext();
+export function StorageEmulatorControls() {
+  const { installed, loading, busy, running, run, onActionStart } = useStorageEmulatorContext();
 
   if (!installed) return null;
 
@@ -279,13 +283,17 @@ export function PubSubEmulatorControls() {
     action();
   };
 
+  const restart = async () => {
+    await api.restartStorage();
+  };
+
   return (
     <div className="media-controls ml-auto shrink-0">
       <button
         type="button"
         className="btn-media btn-media-play"
         disabled={running || busy || loading}
-        onClick={() => withClearError(() => run(() => api.startPubSub(), 'Emulator started.'))}
+        onClick={() => withClearError(() => run(() => api.startStorage(), 'Emulator started.'))}
         aria-label="Start emulator"
         title="Start"
       >
@@ -295,7 +303,7 @@ export function PubSubEmulatorControls() {
         type="button"
         className="btn-media btn-media-stop"
         disabled={!running || busy || loading}
-        onClick={() => withClearError(() => run(() => api.stopPubSub(), 'Emulator stopped.'))}
+        onClick={() => withClearError(() => run(() => api.stopStorage(), 'Emulator stopped.'))}
         aria-label="Stop emulator"
         title="Stop"
       >
@@ -303,11 +311,15 @@ export function PubSubEmulatorControls() {
       </button>
       <button
         type="button"
-        className={`btn-media ${loading || busy ? 'animate-spin' : ''}`}
-        disabled={busy}
-        onClick={() => withClearError(() => void refreshAll())}
-        aria-label="Refresh status"
-        title="Refresh"
+        className={`btn-media ${busy ? 'animate-spin' : ''}`}
+        disabled={!installed || busy || loading}
+        onClick={() =>
+          withClearError(() =>
+            run(restart, running ? 'Emulator restarted.' : 'Emulator started.')
+          )
+        }
+        aria-label="Restart emulator"
+        title="Restart"
       >
         <RefreshIcon />
       </button>

@@ -19,7 +19,8 @@
     "resolveJsonModule": true,
     "paths": {
       "@emulator-studio/shared": ["libs/shared/src/index.ts"],
-      "@emulator-studio/pubsub": ["libs/pubsub/src/index.ts"]
+      "@emulator-studio/pubsub": ["libs/pubsub/src/index.ts"],
+      "@emulator-studio/storage": ["libs/storage/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

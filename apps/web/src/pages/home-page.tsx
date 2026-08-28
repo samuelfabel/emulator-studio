@@ -11,7 +11,7 @@ export function HomePage() {
         </p>
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link to="/emulators" className="card block transition hover:opacity-90">
           <h3 className="mb-2 font-semibold">Installed emulators</h3>
           <p className="text-sm" style={{ color: 'var(--muted)' }}>
@@ -22,6 +22,12 @@ export function HomePage() {
           <h3 className="mb-2 font-semibold">Pub/Sub dashboard</h3>
           <p className="text-sm" style={{ color: 'var(--muted)' }}>
             Topics, subscriptions, publishing, and message consumption.
+          </p>
+        </Link>
+        <Link to="/emulators/storage" className="card block transition hover:opacity-90">
+          <h3 className="mb-2 font-semibold">Cloud Storage dashboard</h3>
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+            Buckets, folders, upload/download, and object browser (fake-gcs-server).
           </p>
         </Link>
       </div>

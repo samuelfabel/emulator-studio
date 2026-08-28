@@ -4,8 +4,10 @@ import type {
   EmulatorListItem,
   EmulatorRuntimeStatus,
   PubSubEmulatorConfig,
+  StorageEmulatorConfig,
 } from '@emulator-studio/shared';
 import { UpdatePubSubConfigDto } from './dto/update-pubsub-config.dto';
+import { UpdateStorageConfigDto } from './dto/update-storage-config.dto';
 import { InstallEmulatorDto } from './dto/install-emulator.dto';
 import { EmulatorsService } from './emulators.service';
 
@@ -18,17 +20,6 @@ export class EmulatorsController {
   @ApiOkResponse({ description: 'Catalog with installed state and runtime' })
   list(): Promise<EmulatorListItem[]> {
     return this.emulatorsService.list();
-  }
-
-  @Post(':id/install')
-  install(@Param('id') id: string, @Body() body: InstallEmulatorDto) {
-    return this.emulatorsService.install(id, body.config);
-  }
-
-  @Delete(':id/uninstall')
-  async uninstall(@Param('id') id: string) {
-    await this.emulatorsService.uninstall(id);
-    return { id, uninstalled: true };
   }
 
   @Get('pubsub/runtime')
@@ -54,5 +45,47 @@ export class EmulatorsController {
   @Post('pubsub/stop')
   stopPubSub(): Promise<EmulatorRuntimeStatus> {
     return this.emulatorsService.stopPubSub();
+  }
+
+  @Get('storage/runtime')
+  storageRuntime(): Promise<EmulatorRuntimeStatus> {
+    return this.emulatorsService.getRuntime('storage');
+  }
+
+  @Put('storage/config')
+  updateStorageConfig(@Body() body: UpdateStorageConfigDto) {
+    return this.emulatorsService.updateStorageConfig(body);
+  }
+
+  @Get('storage/config')
+  getStorageConfig(): StorageEmulatorConfig {
+    return this.emulatorsService.getStorageConfig();
+  }
+
+  @Post('storage/start')
+  startStorage(): Promise<EmulatorRuntimeStatus> {
+    return this.emulatorsService.startStorage();
+  }
+
+  @Post('storage/stop')
+  stopStorage(): Promise<EmulatorRuntimeStatus> {
+    return this.emulatorsService.stopStorage();
+  }
+
+  @Post('storage/restart')
+  restartStorage(): Promise<EmulatorRuntimeStatus> {
+    return this.emulatorsService.restartStorage();
+  }
+
+  // Parameterized routes after static pubsub/storage paths
+  @Post(':id/install')
+  install(@Param('id') id: string, @Body() body: InstallEmulatorDto) {
+    return this.emulatorsService.install(id, body.config);
+  }
+
+  @Delete(':id/uninstall')
+  async uninstall(@Param('id') id: string) {
+    await this.emulatorsService.uninstall(id);
+    return { id, uninstalled: true };
   }
 }

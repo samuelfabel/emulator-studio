@@ -54,6 +54,18 @@ body {
   color: var(--muted);
 }
 
+.breadcrumb-link {
+  @apply rounded px-1 py-0.5 text-sm font-medium transition;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: transparent;
+}
+
+.breadcrumb-link:hover {
+  text-decoration-color: var(--primary);
+}
+
 .btn-icon {
   @apply inline-flex h-8 w-8 items-center justify-center rounded-md text-sm transition;
   color: var(--muted);

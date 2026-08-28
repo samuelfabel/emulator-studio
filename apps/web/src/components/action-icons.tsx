@@ -142,3 +142,135 @@ export function DeleteIcon() {
     </svg>
   );
 }
+
+export function PlusIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M7 2.5v9M2.5 7h9" />
+    </svg>
+  );
+}
+
+export function FolderIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M2.5 4.5h4l1.5 1.5h5.5v7H2.5v-8.5z" />
+    </svg>
+  );
+}
+
+export function FileIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M4.5 2.5h5l3 3v8h-8v-11z" />
+      <path d="M9.5 2.5v3h3" />
+    </svg>
+  );
+}
+
+export function DownloadIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M7 2.5v7" />
+      <path d="M4.25 7.25 7 10l2.75-2.75" />
+      <path d="M2.5 11.5h9" />
+    </svg>
+  );
+}
+
+export function EditIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M9.75 2.75a1.4 1.4 0 0 1 2 2L4.5 12H2.5v-2L9.75 2.75z" />
+      <path d="M8.5 4 10.5 6" />
+    </svg>
+  );
+}
+
+export function CopyIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="4.5" y="4.5" width="7" height="7" rx="1" />
+      <path d="M9.5 4.5V3.5a1 1 0 0 0-1-1h-5a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h1" />
+    </svg>
+  );
+}
+
+export function ExternalLinkIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M6 3.5H3.5a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V8" />
+      <path d="M8 2.5h3.5V6" />
+      <path d="M7.5 6.5 11.5 2.5" />
+    </svg>
+  );
+}

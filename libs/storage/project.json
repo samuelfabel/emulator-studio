@@ -1,0 +1,16 @@
+{
+  "name": "storage",
+  "sourceRoot": "libs/storage/src",
+  "projectType": "library",
+  "tags": ["scope:storage"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "passWithNoTests": true,
+        "reportsDirectory": "{workspaceRoot}/coverage/libs/storage",
+        "config": "{projectRoot}/vitest.config.ts"
+      }
+    }
+  }
+}

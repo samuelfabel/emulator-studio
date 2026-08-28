@@ -10,10 +10,17 @@ export interface PubSubEmulatorConfig {
   hostPort: string;
 }
 
+/** Cloud Storage local emulator (fake-gcs-server). */
+export interface StorageEmulatorConfig {
+  projectId: string;
+  /** e.g. localhost:4443 — API sets STORAGE_EMULATOR_HOST=http://… */
+  hostPort: string;
+}
+
 export interface InstalledEmulator {
   id: string;
   installedAt: string;
-  config: PubSubEmulatorConfig | Record<string, string>;
+  config: PubSubEmulatorConfig | StorageEmulatorConfig | Record<string, string>;
 }
 
 export interface EmulatorRuntimeStatus {
@@ -22,6 +29,8 @@ export interface EmulatorRuntimeStatus {
   /** True when this API started the emulator process. */
   managed?: boolean;
   pid?: number;
+  /** Short Docker container ID when the emulator runs in a container. */
+  containerId?: string;
   startedAt?: string;
   hostPort?: string;
   projectId?: string;
@@ -31,7 +40,7 @@ export interface EmulatorRuntimeStatus {
 export interface EmulatorListItem extends EmulatorCatalogItem {
   installed: boolean;
   installedAt?: string;
-  config?: PubSubEmulatorConfig | Record<string, string>;
+  config?: PubSubEmulatorConfig | StorageEmulatorConfig | Record<string, string>;
   runtime?: EmulatorRuntimeStatus;
 }
 
@@ -51,12 +60,18 @@ export const EMULATOR_CATALOG: EmulatorCatalogItem[] = [
   {
     id: 'storage',
     name: 'Cloud Storage',
-    description: 'Object storage emulator (coming soon).',
-    installable: false,
+    description:
+      'Buckets and objects via fake-gcs-server (browse folders, upload, download, delete). Requires Docker.',
+    installable: true,
   },
 ];
 
 export const DEFAULT_PUBSUB_CONFIG: PubSubEmulatorConfig = {
   projectId: 'local-dev',
   hostPort: 'localhost:8085',
+};
+
+export const DEFAULT_STORAGE_CONFIG: StorageEmulatorConfig = {
+  projectId: 'local-dev',
+  hostPort: 'localhost:4443',
 };

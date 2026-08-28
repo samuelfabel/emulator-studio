@@ -5,11 +5,13 @@ import { join } from 'node:path';
 import net from 'node:net';
 import {
   DEFAULT_PUBSUB_CONFIG,
+  DEFAULT_STORAGE_CONFIG,
   EMULATOR_CATALOG,
   type EmulatorListItem,
   type EmulatorRuntimeStatus,
   type InstalledEmulator,
   type PubSubEmulatorConfig,
+  type StorageEmulatorConfig,
 } from '@emulator-studio/shared';
 
 interface RegistryFile {
@@ -20,6 +22,8 @@ interface RegistryFile {
 export class EmulatorsService implements OnModuleDestroy {
   private readonly dataDir = join(process.cwd(), '.emulator-studio');
   private readonly registryPath = join(this.dataDir, 'installed.json');
+  private readonly storageContainerName = 'emulator-studio-gcs';
+  private readonly storageImage = 'fsouza/fake-gcs-server:1.52.2';
   private readonly processes = new Map<string, ChildProcess>();
   private readonly runtimeMeta = new Map<
     string,
@@ -30,10 +34,12 @@ export class EmulatorsService implements OnModuleDestroy {
     for (const id of [...this.processes.keys()]) {
       this.stopProcess(id).catch(() => undefined);
     }
+    this.stopStorageContainer();
   }
 
   async list(): Promise<EmulatorListItem[]> {
     await this.syncPubSubFromEnvironment();
+    await this.syncStorageFromEnvironment();
     const installed = this.readRegistry();
 
     return Promise.all(
@@ -54,16 +60,26 @@ export class EmulatorsService implements OnModuleDestroy {
     return this.readRegistry().find((e) => e.id === id);
   }
 
-  install(id: string, config?: Partial<PubSubEmulatorConfig>): InstalledEmulator {
+  install(
+    id: string,
+    config?: Partial<PubSubEmulatorConfig & StorageEmulatorConfig>
+  ): InstalledEmulator {
     const catalogItem = EMULATOR_CATALOG.find((e) => e.id === id);
     if (!catalogItem) throw new Error(`Emulator "${id}" not found in catalog.`);
     if (!catalogItem.installable) throw new Error(`Emulator "${id}" is not installable yet.`);
 
     const installed = this.readRegistry().filter((e) => e.id !== id);
+    let resolvedConfig: InstalledEmulator['config'] = config ?? {};
+    if (id === 'pubsub') {
+      resolvedConfig = this.resolvePubSubConfig(config);
+    } else if (id === 'storage') {
+      resolvedConfig = this.resolveStorageConfig(config);
+    }
+
     const record: InstalledEmulator = {
       id,
       installedAt: new Date().toISOString(),
-      config: id === 'pubsub' ? this.resolvePubSubConfig(config) : (config ?? {}),
+      config: resolvedConfig,
     };
 
     installed.push(record);
@@ -71,18 +87,32 @@ export class EmulatorsService implements OnModuleDestroy {
     if (id === 'pubsub') {
       this.applyPubSubEnv(record.config as PubSubEmulatorConfig);
     }
+    if (id === 'storage') {
+      this.applyStorageEnv(record.config as StorageEmulatorConfig);
+    }
     return record;
   }
 
   async uninstall(id: string): Promise<void> {
-    if (this.processes.has(id)) {
-      throw new Error('Stop the emulator before uninstalling.');
-    }
-
-    if (id === 'pubsub') {
-      const config = this.getPubSubConfig();
+    if (id === 'storage') {
+      if (this.isStorageContainerRunning()) {
+        throw new Error('Stop the emulator before uninstalling.');
+      }
+      const config = this.getStorageConfig();
       if (await this.isPortOpen(config.hostPort)) {
         throw new Error('Stop the emulator before uninstalling.');
+      }
+      this.removeStorageContainer();
+    } else {
+      if (this.processes.has(id)) {
+        throw new Error('Stop the emulator before uninstalling.');
+      }
+
+      if (id === 'pubsub') {
+        const config = this.getPubSubConfig();
+        if (await this.isPortOpen(config.hostPort)) {
+          throw new Error('Stop the emulator before uninstalling.');
+        }
       }
     }
 
@@ -120,6 +150,13 @@ export class EmulatorsService implements OnModuleDestroy {
     return config;
   }
 
+  async initializeStorageConfiguration(): Promise<StorageEmulatorConfig> {
+    await this.syncStorageFromEnvironment();
+    const config = this.getStorageConfig();
+    this.applyStorageEnv(config);
+    return config;
+  }
+
   getPubSubConfig(): PubSubEmulatorConfig {
     const installed = this.getInstalled('pubsub');
     if (installed) {
@@ -132,7 +169,7 @@ export class EmulatorsService implements OnModuleDestroy {
   async getRuntime(id: string): Promise<EmulatorRuntimeStatus> {
     const proc = this.processes.get(id);
     const meta = this.runtimeMeta.get(id);
-    const managed = Boolean(proc && !proc.killed);
+    let managed = Boolean(proc && !proc.killed);
 
     let hostPort = meta?.hostPort;
     let projectId = meta?.projectId;
@@ -143,13 +180,22 @@ export class EmulatorsService implements OnModuleDestroy {
       projectId = projectId ?? config.projectId;
     }
 
+    if (id === 'storage') {
+      const config = this.getStorageConfig();
+      hostPort = hostPort ?? config.hostPort;
+      projectId = projectId ?? config.projectId;
+      managed = this.isStorageContainerRunning();
+    }
+
     const portOpen = hostPort ? await this.isPortOpen(hostPort) : false;
+    const containerId = id === 'storage' && managed ? this.getStorageContainerId() : undefined;
 
     return {
       id,
       running: managed || portOpen,
       managed,
-      pid: proc?.pid,
+      pid: id === 'storage' ? undefined : proc?.pid,
+      containerId,
       startedAt: meta?.startedAt,
       hostPort,
       projectId,
@@ -256,6 +302,12 @@ export class EmulatorsService implements OnModuleDestroy {
     process.env.PUBSUB_EMULATOR_HOST = config.hostPort;
   }
 
+  private applyStorageEnv(config: StorageEmulatorConfig): void {
+    process.env.GOOGLE_CLOUD_PROJECT = config.projectId;
+    const host = config.hostPort.replace(/^https?:\/\//, '');
+    process.env.STORAGE_EMULATOR_HOST = `http://${host}`;
+  }
+
   private resolvePubSubConfig(config?: Partial<PubSubEmulatorConfig>): PubSubEmulatorConfig {
     return {
       projectId:
@@ -263,6 +315,134 @@ export class EmulatorsService implements OnModuleDestroy {
       hostPort:
         config?.hostPort ?? process.env.PUBSUB_EMULATOR_HOST ?? DEFAULT_PUBSUB_CONFIG.hostPort,
     };
+  }
+
+  private resolveStorageConfig(config?: Partial<StorageEmulatorConfig>): StorageEmulatorConfig {
+    const envHost = process.env.STORAGE_EMULATOR_HOST?.replace(/^https?:\/\//, '');
+    return {
+      projectId:
+        config?.projectId ?? process.env.GOOGLE_CLOUD_PROJECT ?? DEFAULT_STORAGE_CONFIG.projectId,
+      hostPort: config?.hostPort ?? envHost ?? DEFAULT_STORAGE_CONFIG.hostPort,
+    };
+  }
+
+  getStorageConfig(): StorageEmulatorConfig {
+    const installed = this.getInstalled('storage');
+    if (installed) {
+      return this.resolveStorageConfig(installed.config as StorageEmulatorConfig);
+    }
+    return this.resolveStorageConfig();
+  }
+
+  updateStorageConfig(config: StorageEmulatorConfig): InstalledEmulator {
+    const installed = this.getInstalled('storage');
+    if (!installed) {
+      throw new Error('Install the Cloud Storage emulator before configuring it.');
+    }
+    if (this.isStorageContainerRunning()) {
+      throw new Error('Stop the emulator before changing configuration.');
+    }
+
+    const record: InstalledEmulator = {
+      ...installed,
+      config: this.resolveStorageConfig(config),
+    };
+
+    const all = this.readRegistry().map((e) => (e.id === 'storage' ? record : e));
+    this.writeRegistry(all);
+    this.applyStorageEnv(record.config as StorageEmulatorConfig);
+    return record;
+  }
+
+  async startStorage(): Promise<EmulatorRuntimeStatus> {
+    await this.syncStorageFromEnvironment();
+
+    const installed = this.getInstalled('storage');
+    if (!installed) {
+      throw new Error('Install the Cloud Storage emulator before starting it.');
+    }
+
+    const config = this.resolveStorageConfig(installed.config as StorageEmulatorConfig);
+    const port = this.parseStoragePort(config.hostPort);
+
+    await this.assertDockerAvailable();
+
+    const state = this.getStorageContainerState();
+
+    if (state === 'running') {
+      if (this.storageContainerPortMatches(port)) {
+        this.applyStorageEnv(config);
+        return this.getRuntime('storage');
+      }
+      this.removeStorageContainer();
+    } else if (state === 'stopped') {
+      if (this.storageContainerPortMatches(port)) {
+        this.startStorageContainer(config);
+        this.applyStorageEnv(config);
+        await this.waitForPort(config.hostPort);
+        return this.getRuntime('storage');
+      }
+      this.removeStorageContainer();
+    }
+
+    if (await this.isPortOpen(config.hostPort)) {
+      this.applyStorageEnv(config);
+      return this.getRuntime('storage');
+    }
+
+    this.createStorageContainer(port, config);
+    this.applyStorageEnv(config);
+    await this.waitForPort(config.hostPort);
+    return this.getRuntime('storage');
+  }
+
+  async stopStorage(): Promise<EmulatorRuntimeStatus> {
+    const config = this.getStorageConfig();
+    console.log(`[emulators] Stopping Cloud Storage container ${this.storageContainerName}`);
+
+    if (this.getStorageContainerState() !== 'missing') {
+      this.stopStorageContainer();
+    }
+
+    await this.waitForPortClosed(config.hostPort);
+
+    const runtime = await this.getRuntime('storage');
+    if (runtime.managed) {
+      throw new Error(
+        `Could not stop the storage emulator at ${config.hostPort}. Run: docker stop ${this.storageContainerName}`
+      );
+    }
+
+    console.log(`[emulators] Cloud Storage emulator stopped at ${config.hostPort}`);
+    return runtime;
+  }
+
+  async restartStorage(): Promise<EmulatorRuntimeStatus> {
+    await this.assertDockerAvailable();
+
+    const config = this.getStorageConfig();
+    const port = this.parseStoragePort(config.hostPort);
+    const state = this.getStorageContainerState();
+
+    if (state === 'missing') {
+      return this.startStorage();
+    }
+
+    if (!this.storageContainerPortMatches(port)) {
+      this.removeStorageContainer();
+      return this.startStorage();
+    }
+
+    console.log(`[emulators] Restarting Cloud Storage container ${this.storageContainerName}`);
+    this.execDocker(['restart', this.storageContainerName]);
+    this.runtimeMeta.set('storage', {
+      startedAt: new Date().toISOString(),
+      hostPort: config.hostPort,
+      projectId: config.projectId,
+    });
+    this.applyStorageEnv(config);
+    await this.waitForPort(config.hostPort);
+    return this.getRuntime('storage');
   }
 
   private async syncPubSubFromEnvironment(): Promise<void> {
@@ -285,6 +465,29 @@ export class EmulatorsService implements OnModuleDestroy {
     if (await this.isPortOpen(DEFAULT_PUBSUB_CONFIG.hostPort)) {
       this.install('pubsub', DEFAULT_PUBSUB_CONFIG);
       this.applyPubSubEnv(this.getPubSubConfig());
+    }
+  }
+
+  private async syncStorageFromEnvironment(): Promise<void> {
+    if (this.getInstalled('storage')) {
+      return;
+    }
+
+    const envHost = process.env.STORAGE_EMULATOR_HOST?.replace(/^https?:\/\//, '');
+    const envProject = process.env.GOOGLE_CLOUD_PROJECT;
+
+    if (envHost) {
+      this.install('storage', {
+        hostPort: envHost,
+        projectId: envProject ?? DEFAULT_STORAGE_CONFIG.projectId,
+      });
+      this.applyStorageEnv(this.getStorageConfig());
+      return;
+    }
+
+    if (await this.isPortOpen(DEFAULT_STORAGE_CONFIG.hostPort)) {
+      this.install('storage', DEFAULT_STORAGE_CONFIG);
+      this.applyStorageEnv(this.getStorageConfig());
     }
   }
 
@@ -583,6 +786,114 @@ export class EmulatorsService implements OnModuleDestroy {
     }
   }
 
+  private parseStoragePort(hostPort: string): string {
+    const normalized = hostPort.replace(/^https?:\/\//, '');
+    const [, portStr] = normalized.split(':');
+    return portStr ?? '4443';
+  }
+
+  private execDocker(args: string[], timeoutMs = 30_000): string {
+    return execSync(`docker ${args.join(' ')}`, { encoding: 'utf8', timeout: timeoutMs }).trim();
+  }
+
+  private getStorageContainerState(): 'running' | 'stopped' | 'missing' {
+    try {
+      const status = this.execDocker(
+        ['inspect', '-f', '{{.State.Status}}', this.storageContainerName],
+        10_000
+      );
+      return status === 'running' ? 'running' : 'stopped';
+    } catch {
+      return 'missing';
+    }
+  }
+
+  private isStorageContainerRunning(): boolean {
+    return this.getStorageContainerState() === 'running';
+  }
+
+  private getStorageContainerId(): string | undefined {
+    try {
+      const id = this.execDocker(['inspect', '-f', '{{.Id}}', this.storageContainerName], 10_000);
+      return id.replace(/^sha256:/, '').slice(0, 12);
+    } catch {
+      return undefined;
+    }
+  }
+
+  private getStorageContainerHostPort(): string | undefined {
+    try {
+      const output = this.execDocker(['port', this.storageContainerName], 10_000);
+      const match = output.match(/:(\d+)\s*$/m);
+      return match?.[1];
+    } catch {
+      return undefined;
+    }
+  }
+
+  private storageContainerPortMatches(port: string): boolean {
+    return this.getStorageContainerHostPort() === port;
+  }
+
+  private removeStorageContainer(): void {
+    try {
+      this.execDocker(['rm', '-f', this.storageContainerName]);
+    } catch {
+      // ignore if already gone
+    }
+    this.runtimeMeta.delete('storage');
+  }
+
+  private createStorageContainer(port: string, config: StorageEmulatorConfig): void {
+    // fake-gcs-server — there is no official gcloud storage emulator.
+    this.execDocker([
+      'run',
+      '-d',
+      '--name',
+      this.storageContainerName,
+      '-p',
+      `${port}:${port}`,
+      this.storageImage,
+      '-scheme',
+      'http',
+      '-port',
+      port,
+      '-backend',
+      'memory',
+      '-external-url',
+      `http://localhost:${port}`,
+      '-public-host',
+      `localhost:${port}`,
+    ]);
+    this.runtimeMeta.set('storage', {
+      startedAt: new Date().toISOString(),
+      hostPort: config.hostPort,
+      projectId: config.projectId,
+    });
+  }
+
+  private startStorageContainer(config: StorageEmulatorConfig): void {
+    this.execDocker(['start', this.storageContainerName]);
+    const meta = this.runtimeMeta.get('storage');
+    this.runtimeMeta.set('storage', {
+      startedAt: meta?.startedAt ?? new Date().toISOString(),
+      hostPort: config.hostPort,
+      projectId: config.projectId,
+    });
+  }
+
+  private stopStorageContainer(): void {
+    try {
+      this.execDocker(['stop', this.storageContainerName]);
+    } catch {
+      // ignore if already stopped or missing
+    }
+    const meta = this.runtimeMeta.get('storage');
+    if (meta) {
+      this.runtimeMeta.set('storage', { ...meta, error: undefined });
+    }
+  }
+
   private async assertGcloudAvailable(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
       const check = spawn('gcloud', ['--version'], { shell: true, stdio: 'ignore' });
@@ -592,6 +903,26 @@ export class EmulatorsService implements OnModuleDestroy {
       check.on('exit', (code) => {
         if (code === 0) resolve();
         else reject(new Error('gcloud CLI is not available.'));
+      });
+    });
+  }
+
+  private async assertDockerAvailable(): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+      const check = spawn('docker', ['version'], { shell: true, stdio: 'ignore' });
+      check.on('error', () =>
+        reject(
+          new Error(
+            'Docker not found. Cloud Storage uses fake-gcs-server via Docker (there is no official gcloud storage emulator).'
+          )
+        )
+      );
+      check.on('exit', (code) => {
+        if (code === 0) resolve();
+        else
+          reject(
+            new Error('Docker is not available. Start Docker Desktop / daemon and try again.')
+          );
       });
     });
   }
