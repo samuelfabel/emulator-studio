@@ -2,6 +2,8 @@
 
 Open-source dashboards for **local cloud emulators** (GCP, AWS, Azure). Inspect resources, publish test messages, and validate integrations without touching production.
 
+**Website:** [samuelfabel.github.io/emulator-studio](https://samuelfabel.github.io/emulator-studio/) · **Site repo:** [emulator-studio-site](https://github.com/samuelfabel/emulator-studio-site)
+
 ## Features
 
 - **Nx monorepo** with isolated API and React web app
